@@ -18,6 +18,7 @@ def load_json(path: Path) -> dict[str, Any]:
 
 def check_quality() -> int:
     requirements_data = load_json(ROOT / "quality/requirements.json")
+    coverage_data = load_json(ROOT / "requirements-coverage.json")
     scorecard = load_json(ROOT / "quality/scorecard.json")
     requirements = requirements_data.get("requirements", [])
     if not isinstance(requirements, list) or not requirements:
@@ -33,23 +34,51 @@ def check_quality() -> int:
             if not (ROOT / relative).is_file():
                 raise ValueError(f"{item['id']} evidence does not exist: {relative}")
 
+    coverage = coverage_data.get("requirements", [])
+    if not isinstance(coverage, list) or not coverage:
+        raise ValueError("requirements coverage must be a non-empty list")
+    coverage_ids = {item.get("requirement_id") for item in coverage}
+    if coverage_ids != ids:
+        raise ValueError(
+            f"coverage IDs differ: missing={sorted(ids - coverage_ids)}, "
+            f"unknown={sorted(coverage_ids - ids)}"
+        )
+    for item in coverage:
+        if (
+            item.get("kind") == "required"
+            and item.get("technical")
+            and item.get("coverage") != "full"
+        ):
+            raise ValueError(f"{item['requirement_id']} is not fully covered")
+        if not item.get("tests"):
+            raise ValueError(f"{item['requirement_id']} has no tests")
+        for relative in item.get("evidence", []):
+            if not (ROOT / relative).is_file():
+                raise ValueError(
+                    f"{item['requirement_id']} coverage evidence does not exist: {relative}"
+                )
+
     categories = scorecard.get("categories", [])
-    total_weight = sum(item["weight"] for item in categories)
-    total_score = sum(item["score"] for item in categories)
+    total_weight = sum(item["max"] for item in categories)
+    total_score = sum(item["earned"] for item in categories)
     if total_weight != 100:
         raise ValueError(f"category weights total {total_weight}, expected 100")
-    covered: set[str] = set()
     for category in categories:
-        if not 0 <= category["score"] <= category["weight"]:
-            raise ValueError(f"invalid score for {category['name']}")
-        covered.update(category["requirements"])
-    missing = ids - covered
-    unknown = covered - ids
-    if missing or unknown:
-        raise ValueError(f"coverage mismatch: missing={sorted(missing)}, unknown={sorted(unknown)}")
-    threshold = scorecard.get("threshold")
+        if not 0 <= category["earned"] <= category["max"]:
+            raise ValueError(f"invalid score for {category['id']}")
+        if not category.get("evidence"):
+            raise ValueError(f"{category['id']} has no score evidence")
+    if scorecard.get("schema_version") != "1.0" or scorecard.get("score") != total_score:
+        raise ValueError("canonical scorecard schema or score total is invalid")
+    threshold = scorecard.get("target")
     if not isinstance(threshold, int) or total_score < threshold:
         raise ValueError(f"quality score {total_score} is below threshold {threshold}")
+    required_gates = {"tests", "runtime_smoke", "memory", "security", "docs_examples"}
+    hard_gates = scorecard.get("hard_gates")
+    if not isinstance(hard_gates, dict) or set(hard_gates) != required_gates:
+        raise ValueError("hard gate keys do not match the shared contract")
+    if any(value is not True for value in hard_gates.values()):
+        raise ValueError("not all hard gates passed")
     return total_score
 
 

@@ -1,0 +1,18 @@
+{
+  "schema_version": "1.0",
+  "requirements": [
+    {"requirement_id": "FUNC-01", "kind": "required", "technical": true, "coverage": "full", "evidence": ["src/physical_robot/products.py", "src/physical_robot/contracts.py"], "tests": ["tests/test_contracts.py::test_catalog_has_two_explicit_mock_products"]},
+    {"requirement_id": "FUNC-02", "kind": "required", "technical": true, "coverage": "full", "evidence": ["src/physical_robot/runtime.py"], "tests": ["tests/test_runtime.py::test_deterministic_lifecycle_applies_navigation"]},
+    {"requirement_id": "FUNC-03", "kind": "required", "technical": true, "coverage": "full", "evidence": ["src/physical_robot/runtime.py"], "tests": ["tests/test_runtime.py::test_idempotency_returns_same_record_and_changed_payload_conflicts"]},
+    {"requirement_id": "SAFE-01", "kind": "required", "technical": true, "coverage": "full", "evidence": ["src/physical_robot/runtime.py"], "tests": ["tests/test_runtime.py::test_invalid_commands_are_stored_as_rejected", "tests/test_runtime.py::test_hardware_estop_interrupts_an_accepted_motion"]},
+    {"requirement_id": "SAFE-02", "kind": "required", "technical": true, "coverage": "full", "evidence": ["docs/api.md", "src/physical_robot/contracts.py"], "tests": ["tests/test_runtime.py::test_hardware_estop_blocks_motion_but_is_not_software_stop"]},
+    {"requirement_id": "INTF-01", "kind": "required", "technical": true, "coverage": "full", "evidence": ["contracts/openapi.json", "contracts/command-request.schema.json"], "tests": ["tests/test_api.py::test_api_has_stable_error_envelope_and_openapi_contract", "tests/test_quality.py::test_generated_contracts_are_current"]},
+    {"requirement_id": "INTF-02", "kind": "required", "technical": true, "coverage": "full", "evidence": ["src/physical_robot/ports.py", "src/physical_robot/conformance.py"], "tests": ["tests/test_api.py::test_black_box_conformance_is_read_only_by_default_and_opt_in_for_commands"]},
+    {"requirement_id": "REL-01", "kind": "required", "technical": true, "coverage": "full", "evidence": ["src/physical_robot/runtime.py", "tools/soak.py"], "tests": ["tests/test_runtime.py::test_store_is_bounded_and_terminal_entries_are_reclaimed", "tests/test_runtime.py::test_retention_cleanup_has_no_background_tasks"]},
+    {"requirement_id": "REL-02", "kind": "required", "technical": true, "coverage": "full", "evidence": ["src/physical_robot/runtime.py"], "tests": ["tests/test_runtime.py::test_concurrent_duplicate_submit_is_single_idempotent_record"]},
+    {"requirement_id": "PERF-01", "kind": "required", "technical": true, "coverage": "full", "evidence": ["tools/benchmark.py"], "tests": ["uv run python tools/benchmark.py --iterations 2000"]},
+    {"requirement_id": "PERF-02", "kind": "required", "technical": true, "coverage": "full", "evidence": ["tools/soak.py"], "tests": ["uv run python tools/soak.py --iterations 10000"]},
+    {"requirement_id": "SEC-01", "kind": "required", "technical": true, "coverage": "full", "evidence": ["Dockerfile", "compose.yaml", ".github/workflows/ci.yml"], "tests": ["docker compose config --quiet", "docker compose up -d --wait"]},
+    {"requirement_id": "DOC-01", "kind": "required", "technical": false, "coverage": "full", "evidence": ["README.md", "docs/api.md", "docs/connecting-hardware.md"], "tests": ["python3 smoke.py"]}
+  ]
+}

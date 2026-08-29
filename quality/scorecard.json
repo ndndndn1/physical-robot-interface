@@ -1,12 +1,20 @@
 {
-  "schema_version": 1,
-  "threshold": 80,
+  "schema_version": "1.0",
+  "target": 80,
+  "score": 92,
   "categories": [
-    {"name": "functionality", "weight": 25, "score": 24, "requirements": ["FUNC-01", "FUNC-02", "FUNC-03"]},
-    {"name": "interface", "weight": 20, "score": 19, "requirements": ["INTF-01", "INTF-02"]},
-    {"name": "reliability_safety", "weight": 20, "score": 18, "requirements": ["SAFE-01", "SAFE-02", "REL-01", "REL-02"]},
-    {"name": "validation_performance", "weight": 15, "score": 13, "requirements": ["PERF-01", "PERF-02"]},
-    {"name": "security_supply_chain", "weight": 10, "score": 9, "requirements": ["SEC-01"]},
-    {"name": "documentation_usability", "weight": 10, "score": 9, "requirements": ["DOC-01"]}
-  ]
+    {"id": "functionality", "max": 25, "earned": 24, "evidence": ["22 deterministic contract, runtime, API and quality tests", "two complete product profiles"]},
+    {"id": "interface", "max": 20, "earned": 19, "evidence": ["versioned JSON Schema and OpenAPI", "typed SDK and black-box conformance harness"]},
+    {"id": "reliability_safety", "max": 20, "earned": 18, "evidence": ["bounded command store and injected clock", "hardware E-stop interrupts accepted motion", "software stop is separately represented"]},
+    {"id": "validation_performance", "max": 15, "earned": 13, "evidence": ["9201 command cycles per second", "10000-cycle allocation soak"]},
+    {"id": "security_supply_chain", "max": 10, "earned": 9, "evidence": ["non-root read-only capability-free container", "pinned base image and CI SBOM"]},
+    {"id": "documentation_usability", "max": 10, "earned": 9, "evidence": ["copyable mock and SDK usage", "hardware connection and safety guide"]}
+  ],
+  "hard_gates": {
+    "tests": true,
+    "runtime_smoke": true,
+    "memory": true,
+    "security": true,
+    "docs_examples": true
+  }
 }

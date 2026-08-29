@@ -21,6 +21,14 @@ def test_machine_readable_quality_gate_passes() -> None:
         "maximum": 100,
         "status": "pass",
     }
+    canonical = subprocess.run(
+        [sys.executable, "quality/check_score.py"],
+        cwd=ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    assert canonical.stdout.startswith("quality scorecard passed:")
 
 
 def test_generated_contracts_are_current() -> None:

@@ -5,7 +5,21 @@ COPY pyproject.toml README.md LICENSE ./
 COPY src ./src
 RUN python -m pip install --no-cache-dir --prefix=/install .
 
-FROM python:3.12-slim@sha256:804ddf3251a60bbf9c92e73b7566c40428d54d0e79d3428194edf40da6521286
+FROM builder AS test
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
+COPY contracts ./contracts
+COPY docs ./docs
+COPY quality ./quality
+COPY tests ./tests
+COPY tools ./tools
+COPY .github ./.github
+COPY Dockerfile compose.yaml requirements-coverage.json smoke.py ./
+RUN python -m pip install --no-cache-dir ".[dev]"
+CMD ["python", "-m", "pytest", "-p", "no:cacheprovider"]
+
+FROM python:3.12-slim@sha256:804ddf3251a60bbf9c92e73b7566c40428d54d0e79d3428194edf40da6521286 AS runtime
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1

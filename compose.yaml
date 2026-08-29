@@ -2,6 +2,7 @@ services:
   physical-robot:
     build:
       context: .
+      target: runtime
     image: physical-robot-interface:local
     read_only: true
     user: "65532:65532"
@@ -22,4 +23,23 @@ services:
       interval: 10s
       timeout: 3s
       retries: 3
+    restart: "no"
+
+  test:
+    profiles:
+      - test
+    build:
+      context: .
+      target: test
+    image: physical-robot-interface:test
+    command: ["python", "-m", "pytest", "-p", "no:cacheprovider"]
+    network_mode: none
+    read_only: true
+    user: "65532:65532"
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
     restart: "no"
