@@ -1,0 +1,50 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          python-version: "3.12"
+      - run: uv sync --frozen --extra dev
+      - run: uv run ruff check src tests tools
+      - run: uv run mypy
+      - run: uv run pytest
+      - run: uv run python tools/export_schemas.py --check
+      - run: uv run python tools/export_openapi.py --check
+      - run: uv run python tools/check_quality.py
+      - run: uv run python tools/benchmark.py --iterations 2000
+      - run: uv run python tools/soak.py --iterations 10000
+      - run: uv build
+
+  container:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build --tag physical-robot-interface:test .
+      - uses: aquasecurity/trivy-action@0.33.1
+        with:
+          scan-type: fs
+          scan-ref: .
+          severity: HIGH,CRITICAL
+          exit-code: "1"
+          ignore-unfixed: true
+      - uses: anchore/sbom-action@v0
+        with:
+          image: physical-robot-interface:test
+          format: spdx-json
+          output-file: physical-robot-interface.spdx.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sbom
+          path: physical-robot-interface.spdx.json

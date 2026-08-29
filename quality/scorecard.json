@@ -1,0 +1,12 @@
+{
+  "schema_version": 1,
+  "threshold": 80,
+  "categories": [
+    {"name": "functionality", "weight": 25, "score": 24, "requirements": ["FUNC-01", "FUNC-02", "FUNC-03"]},
+    {"name": "interface", "weight": 20, "score": 19, "requirements": ["INTF-01", "INTF-02"]},
+    {"name": "reliability_safety", "weight": 20, "score": 18, "requirements": ["SAFE-01", "SAFE-02", "REL-01", "REL-02"]},
+    {"name": "validation_performance", "weight": 15, "score": 13, "requirements": ["PERF-01", "PERF-02"]},
+    {"name": "security_supply_chain", "weight": 10, "score": 9, "requirements": ["SEC-01"]},
+    {"name": "documentation_usability", "weight": 10, "score": 9, "requirements": ["DOC-01"]}
+  ]
+}

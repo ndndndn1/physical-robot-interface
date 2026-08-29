@@ -38,7 +38,7 @@ class HardwareSafetyState(StrEnum):
 
 
 class Pose2D(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", frozen=True)
 
     x_m: float = Field(ge=-10_000, le=10_000)
     y_m: float = Field(ge=-10_000, le=10_000)
@@ -47,7 +47,7 @@ class Pose2D(BaseModel):
 
 
 class NavigateAction(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", frozen=True)
 
     type: Literal[CommandType.NAVIGATE] = CommandType.NAVIGATE
     target: Pose2D
@@ -55,15 +55,15 @@ class NavigateAction(BaseModel):
 
 
 class ManipulateAction(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", frozen=True)
 
     type: Literal[CommandType.MANIPULATE] = CommandType.MANIPULATE
-    joint_positions_rad: list[float] = Field(min_length=1, max_length=16)
+    joint_positions_rad: tuple[float, ...] = Field(min_length=1, max_length=16)
     max_force_n: float = Field(default=30, gt=0, le=250)
 
 
 class ProtectiveStopAction(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", frozen=True)
 
     type: Literal[CommandType.PROTECTIVE_STOP] = CommandType.PROTECTIVE_STOP
     reason: str = Field(min_length=1, max_length=256)

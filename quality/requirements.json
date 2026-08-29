@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "requirements": [
+    {"id": "FUNC-01", "required": true, "evidence": ["tests/test_contracts.py", "tests/test_runtime.py"]},
+    {"id": "FUNC-02", "required": true, "evidence": ["tests/test_runtime.py"]},
+    {"id": "FUNC-03", "required": true, "evidence": ["tests/test_runtime.py", "tests/test_api.py"]},
+    {"id": "SAFE-01", "required": true, "evidence": ["tests/test_runtime.py"]},
+    {"id": "SAFE-02", "required": true, "evidence": ["docs/api.md", "tests/test_runtime.py"]},
+    {"id": "INTF-01", "required": true, "evidence": ["contracts/command-request.schema.json", "tests/test_api.py"]},
+    {"id": "INTF-02", "required": true, "evidence": ["src/physical_robot/ports.py", "src/physical_robot/conformance.py"]},
+    {"id": "REL-01", "required": true, "evidence": ["tools/soak.py", "tests/test_runtime.py"]},
+    {"id": "REL-02", "required": true, "evidence": ["tests/test_runtime.py"]},
+    {"id": "PERF-01", "required": true, "evidence": ["tools/benchmark.py"]},
+    {"id": "PERF-02", "required": true, "evidence": ["tools/soak.py"]},
+    {"id": "SEC-01", "required": true, "evidence": ["Dockerfile", "compose.yaml"]},
+    {"id": "DOC-01", "required": true, "evidence": ["README.md", "docs/connecting-hardware.md"]}
+  ]
+}
