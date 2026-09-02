@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import math
 from collections import OrderedDict
 from dataclasses import dataclass
 from datetime import timedelta
@@ -22,7 +23,12 @@ from physical_robot.contracts import (
     RobotState,
 )
 from physical_robot.errors import CapacityError, ConflictError, NotFoundError
-from physical_robot.products import ProductProfile, product_catalog
+from physical_robot.products import (
+    ProductCapabilityProfile,
+    ProductProfile,
+    capability_profiles_for,
+    product_catalog,
+)
 
 TERMINAL_STATUSES = frozenset(
     {
@@ -56,6 +62,7 @@ class MockRobotRuntime:
         max_commands: int = 1_000,
         terminal_retention: timedelta = timedelta(hours=1),
         products: tuple[ProductProfile, ...] | None = None,
+        capability_profiles: tuple[ProductCapabilityProfile, ...] | None = None,
     ) -> None:
         if max_commands < 1:
             raise ValueError("max_commands must be positive")
@@ -68,6 +75,24 @@ class MockRobotRuntime:
         self._products_by_id = {product.product_id: product for product in self._products}
         if len(self._products_by_id) != len(self._products):
             raise ValueError("product IDs must be unique")
+        self._capability_profiles = (
+            capability_profiles_for(self._products)
+            if capability_profiles is None
+            else capability_profiles
+        )
+        self._capability_profiles_by_id = {
+            profile.product_id: profile for profile in self._capability_profiles
+        }
+        if len(self._capability_profiles_by_id) != len(self._capability_profiles):
+            raise ValueError("capability profile product IDs must be unique")
+        if set(self._capability_profiles_by_id) != set(self._products_by_id):
+            raise ValueError("v1 products and v2 capability profiles must describe the same IDs")
+        for product_id, product in self._products_by_id.items():
+            profile = self._capability_profiles_by_id[product_id]
+            if profile.joint_count != product.joint_count:
+                raise ValueError(f"v1 and v2 joint counts differ for {product_id}")
+            if set(profile.capabilities) != set(product.capabilities):
+                raise ValueError(f"v1 and v2 capabilities differ for {product_id}")
         self._commands: OrderedDict[str, _StoredCommand] = OrderedDict()
         self._lock = RLock()
         self._states = {
@@ -96,6 +121,15 @@ class MockRobotRuntime:
 
     def catalog(self) -> tuple[ProductProfile, ...]:
         return self._products
+
+    def capability_catalog(self) -> tuple[ProductCapabilityProfile, ...]:
+        return self._capability_profiles
+
+    def get_capability_profile(self, product_id: str) -> ProductCapabilityProfile:
+        try:
+            return self._capability_profiles_by_id[product_id]
+        except KeyError as exc:
+            raise NotFoundError(f"product capability {product_id}") from exc
 
     def list_states(self) -> tuple[RobotState, ...]:
         with self._lock:
@@ -177,6 +211,28 @@ class MockRobotRuntime:
             product is None or len(request.action.joint_positions_rad) != product.joint_count
         ):
             return ("invalid_joint_count", "joint target does not match product profile")
+        profile = self._capability_profiles_by_id.get(state.product_id)
+        if profile is None:
+            return ("missing_capability_profile", "product capability limits are unavailable")
+        if (
+            isinstance(request.action, NavigateAction)
+            and request.action.max_speed_mps > profile.max_navigation_speed_mps
+        ):
+            return (
+                "speed_limit_exceeded",
+                "navigation speed exceeds the product capability profile",
+            )
+        if isinstance(request.action, ManipulateAction):
+            if request.action.max_force_n > profile.max_manipulation_force_n:
+                return (
+                    "force_limit_exceeded",
+                    "manipulation force exceeds the product capability profile",
+                )
+            joint_error = self._validate_joint_positions(
+                request.action.joint_positions_rad, profile
+            )
+            if joint_error is not None:
+                return joint_error
         return None
 
     def get_command(self, command_id: str) -> CommandRecord:
@@ -233,6 +289,12 @@ class MockRobotRuntime:
                     raise ConflictError(
                         "invalid_joint_count", "hardware state does not match product profile"
                     )
+                profile = self.get_capability_profile(state.product_id)
+                joint_error = self._validate_joint_positions(
+                    tuple(patch.joint_positions_rad), profile
+                )
+                if joint_error is not None:
+                    raise ConflictError(*joint_error)
                 updates["joint_positions_rad"] = tuple(patch.joint_positions_rad)
             updated = state.model_copy(update=updates)
             self._states[robot_id] = updated
@@ -318,6 +380,22 @@ class MockRobotRuntime:
 
     def _get_product(self, product_id: str) -> ProductProfile | None:
         return self._products_by_id.get(product_id)
+
+    @staticmethod
+    def _validate_joint_positions(
+        positions: tuple[float, ...], profile: ProductCapabilityProfile
+    ) -> tuple[str, str] | None:
+        for position, limit in zip(positions, profile.joint_limits, strict=True):
+            if (
+                not math.isfinite(position)
+                or position < limit.min_position_rad
+                or position > limit.max_position_rad
+            ):
+                return (
+                    "joint_limit_exceeded",
+                    f"{limit.joint_name} target is outside the product capability profile",
+                )
+        return None
 
     @property
     def command_count(self) -> int:

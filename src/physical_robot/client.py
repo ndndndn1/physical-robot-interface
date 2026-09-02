@@ -15,7 +15,7 @@ from physical_robot.contracts import (
     RobotState,
 )
 from physical_robot.errors import RobotError
-from physical_robot.products import ProductProfile
+from physical_robot.products import ProductCapabilityProfile, ProductProfile
 
 
 class RobotClient:
@@ -42,6 +42,16 @@ class RobotClient:
     def products(self) -> tuple[ProductProfile, ...]:
         response = self._request("GET", "/v1/products")
         return tuple(ProductProfile.model_validate(item) for item in response.json())
+
+    def product_capabilities(self) -> tuple[ProductCapabilityProfile, ...]:
+        response = self._request("GET", "/v2/products")
+        return tuple(
+            ProductCapabilityProfile.model_validate(item) for item in response.json()
+        )
+
+    def product_capability(self, product_id: str) -> ProductCapabilityProfile:
+        response = self._request("GET", f"/v2/products/{product_id}")
+        return ProductCapabilityProfile.model_validate(response.json())
 
     def robots(self) -> tuple[RobotState, ...]:
         response = self._request("GET", "/v1/robots")

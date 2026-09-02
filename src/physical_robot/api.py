@@ -15,7 +15,7 @@ from physical_robot.contracts import (
 )
 from physical_robot.errors import RobotError
 from physical_robot.ports import RobotPort
-from physical_robot.products import ProductProfile
+from physical_robot.products import ProductCapabilityProfile, ProductProfile
 from physical_robot.runtime import MockRobotRuntime
 
 
@@ -23,7 +23,7 @@ def create_app(port: RobotPort | None = None) -> FastAPI:
     robot_port = port or MockRobotRuntime()
     app = FastAPI(
         title="Physical Robot Interface",
-        version="1.0.0",
+        version="1.1.0",
         description=(
             "Vendor-neutral RobotPort. software protective_stop is not a certified "
             "hardware emergency stop."
@@ -61,6 +61,14 @@ def create_app(port: RobotPort | None = None) -> FastAPI:
     @app.get("/v1/products", response_model=list[ProductProfile])
     def list_products(port: Port) -> tuple[ProductProfile, ...]:
         return port.catalog()
+
+    @app.get("/v2/products", response_model=list[ProductCapabilityProfile])
+    def list_product_capabilities(port: Port) -> tuple[ProductCapabilityProfile, ...]:
+        return port.capability_catalog()
+
+    @app.get("/v2/products/{product_id}", response_model=ProductCapabilityProfile)
+    def get_product_capability(product_id: str, port: Port) -> ProductCapabilityProfile:
+        return port.get_capability_profile(product_id)
 
     @app.get("/v1/robots", response_model=list[RobotState])
     def list_robots(port: Port) -> tuple[RobotState, ...]:
