@@ -3,12 +3,12 @@
   "target": 80,
   "score": 92,
   "categories": [
-    {"id": "functionality", "max": 25, "earned": 24, "evidence": ["22 deterministic contract, runtime, API and quality tests", "two complete product profiles"]},
-    {"id": "interface", "max": 20, "earned": 19, "evidence": ["versioned JSON Schema and OpenAPI", "typed SDK and black-box conformance harness"]},
-    {"id": "reliability_safety", "max": 20, "earned": 18, "evidence": ["bounded command store and injected clock", "hardware E-stop interrupts accepted motion", "software stop is separately represented"]},
-    {"id": "validation_performance", "max": 15, "earned": 13, "evidence": ["9201 command cycles per second", "10000-cycle allocation soak"]},
-    {"id": "security_supply_chain", "max": 10, "earned": 9, "evidence": ["non-root read-only capability-free container", "pinned base image and CI SBOM"]},
-    {"id": "documentation_usability", "max": 10, "earned": 9, "evidence": ["copyable mock and SDK usage", "hardware connection and safety guide"]}
+    {"id": "functionality", "max": 25, "earned": 24, "evidence": ["32 deterministic contract, runtime, API and quality tests", "two immutable v2 capability profiles"]},
+    {"id": "interface", "max": 20, "earned": 19, "evidence": ["byte-pinned v1 plus strict v2 JSON Schema and OpenAPI", "typed SDK and digest-validating conformance harness"]},
+    {"id": "reliability_safety", "max": 20, "earned": 18, "evidence": ["bounded command store and injected clock", "product joint, force and speed limits reject before state mutation", "hardware and software stop remain separate"]},
+    {"id": "validation_performance", "max": 15, "earned": 13, "evidence": ["9053.42 command cycles per second with product-limit validation", "10000-cycle soak retained 128 commands with 569808-byte growth"]},
+    {"id": "security_supply_chain", "max": 10, "earned": 9, "evidence": ["verified UID 65532 read-only capability-free container", "pinned base image and CI SBOM"]},
+    {"id": "documentation_usability", "max": 10, "earned": 9, "evidence": ["copyable v1 command and v2 capability usage", "explicit input, output, target and hardware safety boundaries"]}
   ],
   "hard_gates": {
     "tests": true,

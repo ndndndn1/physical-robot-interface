@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0",
+  "observed_at": "2026-09-02",
+  "compose_project": "physical_v2_capability",
+  "image_build": "pass",
+  "health": "healthy",
+  "smoke": {
+    "status": "pass",
+    "robot_id": "mm-01-a",
+    "profile_digest": "sha256:ac9b980057912f3967c9c5444912429f481ca5f5bd482f34f6ac6fbdf87cd322",
+    "checks": [
+      "v1 product and state",
+      "v2 catalog and canonical digest",
+      "product speed-limit rejection without state mutation",
+      "v1 idempotent command lifecycle"
+    ]
+  },
+  "container": {
+    "user": "65532:65532",
+    "read_only_rootfs": true,
+    "cap_drop": ["ALL"],
+    "security_opt": ["no-new-privileges:true"]
+  },
+  "cleanup": "pass"
+}

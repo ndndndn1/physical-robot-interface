@@ -20,6 +20,9 @@ def run(iterations: int) -> dict[str, int | str]:
         raise ValueError("iterations must be positive")
     now = datetime(2026, 1, 1, tzinfo=UTC)
     runtime = MockRobotRuntime(clock=ManualClock(now), max_commands=128)
+    profile_digest = runtime.get_capability_profile(
+        "mock-mobile-manipulator-mm-01"
+    ).profile_digest
     tracemalloc.start()
     gc.collect()
     baseline, _ = tracemalloc.get_traced_memory()
@@ -55,6 +58,7 @@ def run(iterations: int) -> dict[str, int | str]:
         "retained_commands": runtime.command_count,
         "allocation_growth_bytes": growth,
         "peak_traced_bytes": peak,
+        "profile_digest": profile_digest,
     }
 
 
