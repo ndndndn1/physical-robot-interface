@@ -114,6 +114,99 @@ def test_invalid_commands_are_stored_as_rejected(
     assert record.error_code == error_code
 
 
+@pytest.mark.parametrize(
+    ("robot_id", "joint_count", "speed", "force", "joint_position"),
+    [
+        ("mh-01-a", 12, 1.01, 121.0, 2.81),
+        ("mm-01-a", 6, 1.26, 81.0, 3.01),
+    ],
+)
+def test_v2_product_limits_reject_motion_before_execution(
+    runtime: MockRobotRuntime,
+    robot_id: str,
+    joint_count: int,
+    speed: float,
+    force: float,
+    joint_position: float,
+) -> None:
+    state_version = runtime.get_state(robot_id).state_version
+    cases = (
+        (
+            "speed",
+            {
+                "type": "navigate",
+                "target": {"x_m": 1, "y_m": 0, "yaw_rad": 0},
+                "max_speed_mps": speed,
+            },
+            "speed_limit_exceeded",
+        ),
+        (
+            "force",
+            {
+                "type": "manipulate",
+                "joint_positions_rad": [0.0] * joint_count,
+                "max_force_n": force,
+            },
+            "force_limit_exceeded",
+        ),
+        (
+            "joint",
+            {
+                "type": "manipulate",
+                "joint_positions_rad": [joint_position] + [0.0] * (joint_count - 1),
+            },
+            "joint_limit_exceeded",
+        ),
+    )
+    for suffix, action, error_code in cases:
+        rejected = runtime.submit(
+            command(
+                f"{robot_id}-{suffix}",
+                robot_id=robot_id,
+                state_version=state_version,
+                action=action,
+            )
+        )
+        assert rejected.status is CommandStatus.REJECTED
+        assert rejected.error_code == error_code
+        assert runtime.get_state(robot_id).state_version == state_version
+        assert runtime.get_state(robot_id).active_command_id is None
+
+
+@pytest.mark.parametrize("robot_id", ["mh-01-a", "mm-01-a"])
+def test_v2_product_limit_boundaries_are_accepted(
+    clock: ManualClock, robot_id: str
+) -> None:
+    runtime = MockRobotRuntime(clock=clock)
+    state = runtime.get_state(robot_id)
+    profile = runtime.get_capability_profile(state.product_id)
+    accepted = runtime.submit(
+        command(
+            f"{robot_id}-boundary",
+            robot_id=robot_id,
+            state_version=state.state_version,
+            action={
+                "type": "manipulate",
+                "joint_positions_rad": [
+                    limit.max_position_rad for limit in profile.joint_limits
+                ],
+                "max_force_n": profile.max_manipulation_force_n,
+            },
+        )
+    )
+    assert accepted.status is CommandStatus.ACCEPTED
+
+
+def test_simulator_hardware_patch_rejects_out_of_profile_joint_state(
+    runtime: MockRobotRuntime,
+) -> None:
+    with pytest.raises(ConflictError) as error:
+        runtime.simulate_hardware_state(
+            "mm-01-a", HardwareStatePatch(joint_positions_rad=[3.01] + [0.0] * 5)
+        )
+    assert error.value.code == "joint_limit_exceeded"
+
+
 def test_cancel_releases_robot(runtime: MockRobotRuntime) -> None:
     accepted = runtime.submit(command("cancel-me"))
     state_version = runtime.get_state("mh-01-a").state_version
@@ -175,6 +268,21 @@ def test_unsupported_capability_is_rejected_before_execution(clock: ManualClock)
     assert rejected.status is CommandStatus.REJECTED
     assert rejected.error_code == "unsupported_capability"
     assert runtime.get_state("mh-01-a").active_command_id is None
+
+
+def test_runtime_rejects_inconsistent_v1_and_v2_product_metadata(
+    clock: ManualClock,
+) -> None:
+    products = product_catalog()
+    baseline = MockRobotRuntime(clock=clock)
+    profiles = baseline.capability_catalog()
+    inconsistent = profiles[0].model_copy(update={"joint_count": 11})
+    with pytest.raises(ValueError, match="joint counts differ"):
+        MockRobotRuntime(
+            clock=clock,
+            products=products,
+            capability_profiles=(inconsistent, profiles[1]),
+        )
 
 
 def test_concurrent_duplicate_submit_is_single_idempotent_record(

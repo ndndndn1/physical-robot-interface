@@ -10,6 +10,11 @@ controller and firmware revisions, supported capabilities, joint count, payload 
 speed limits, coordinate frames, vendor protocol, and safety manual revision. Do not
 claim conformance from a family name alone.
 
+A future adapter must expose one strict `/v2/products/{product_id}` profile for every
+v1 product and compute a new `profile_digest` whenever any joint, force, speed, payload,
+frame, capability, or connection field changes. The mock MH-01/MM-01 values are test
+fixtures and must never be copied as real equipment limits.
+
 ## Interface and connection procedure
 
 1. Place the controller and gateway on an isolated OT Ethernet segment. Do not publish
@@ -28,6 +33,11 @@ claim conformance from a family name alone.
    payload, limit, loss-of-network, restart, and safety validation.
 6. Enable production traffic only after the named safety owner approves the documented
    risk assessment and rollback procedure.
+
+The conformance harness checks v1/v2 product identity, joint-count consistency,
+digest validity, positive bounded limits, and distinct base/tool frames without sending
+motion. Adapter enforcement of joint, force, speed, and payload limits still requires
+vendor commissioning and HIL evidence; the software profile is not a safety-rated limit.
 
 The adapter must preserve idempotency across restarts and reject unsupported commands
 before sending anything to hardware. A vendor fault must become a stable failed command

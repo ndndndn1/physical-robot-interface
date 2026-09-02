@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 
 from physical_robot.contracts import CommandRecord, CommandRequest, RobotState
-from physical_robot.products import ProductProfile
+from physical_robot.products import ProductCapabilityProfile, ProductProfile
 
 
 def main() -> None:
@@ -21,6 +21,7 @@ def main() -> None:
         "command-record": CommandRecord,
         "command-request": CommandRequest,
         "product-profile": ProductProfile,
+        "product-capability-profile-v2": ProductCapabilityProfile,
         "robot-state": RobotState,
     }
     for name, model in models.items():

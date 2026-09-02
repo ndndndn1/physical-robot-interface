@@ -5,11 +5,15 @@ from __future__ import annotations
 from typing import Protocol
 
 from physical_robot.contracts import CommandRecord, CommandRequest, HardwareStatePatch, RobotState
-from physical_robot.products import ProductProfile
+from physical_robot.products import ProductCapabilityProfile, ProductProfile
 
 
 class RobotPort(Protocol):
     def catalog(self) -> tuple[ProductProfile, ...]: ...
+
+    def capability_catalog(self) -> tuple[ProductCapabilityProfile, ...]: ...
+
+    def get_capability_profile(self, product_id: str) -> ProductCapabilityProfile: ...
 
     def list_states(self) -> tuple[RobotState, ...]: ...
 
@@ -22,4 +26,3 @@ class RobotPort(Protocol):
     def cancel(self, command_id: str) -> CommandRecord: ...
 
     def simulate_hardware_state(self, robot_id: str, patch: HardwareStatePatch) -> RobotState: ...
-

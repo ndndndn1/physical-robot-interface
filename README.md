@@ -13,6 +13,20 @@ request**. A protective-stop request is not a certified hardware emergency stop.
 hardware E-stop state is an independently observed safety input and cannot be cleared
 by a normal command.
 
+`GET /v2/products` adds immutable planner-visible capability profiles while all `/v1`
+command, state, and product schemas remain byte-compatible. The mock profiles are:
+
+| Model | Joint position / velocity | Force | Navigation | Payload | Frames |
+|---|---|---:|---:|---:|---|
+| MH-01 | 12 × -2.8–2.8 rad, 1.5 rad/s | 120 N | 1.0 m/s | 15 kg | `base_link` → `right_hand_tool0` |
+| MM-01 | 6 × -3.0–3.0 rad, 2.0 rad/s | 80 N | 1.25 m/s | 10 kg | `base_link` → `arm_tool0` |
+
+These are deterministic mock integration limits, not manufacturer specifications or a
+safety certification. Joint targets, manipulation force, and navigation speed are
+rejected before mock execution when they exceed the applicable profile. Joint velocity
+and payload are admission inputs for an upstream planner because the unchanged v1
+command has no velocity or payload field.
+
 The same `RobotPort` protocol is implemented by the included mock and is the required
 boundary for later ROS 2 or vendor hardware adapters. See `docs/connecting-hardware.md`
 before connecting physical equipment.
@@ -28,6 +42,7 @@ In another shell, submit a navigation command to a fresh mock instance:
 
 ```bash
 curl -sS http://127.0.0.1:8080/v1/robots/mh-01-a
+curl -sS http://127.0.0.1:8080/v2/products/mock-humanoid-mh-01
 issued_at=$(date -u +%Y-%m-%dT%H:%M:%SZ)
 expires_at=$(date -u -d '+1 minute' +%Y-%m-%dT%H:%M:%SZ)
 curl -sS -X POST http://127.0.0.1:8080/v1/commands \
@@ -67,6 +82,10 @@ The command test sends a software protective stop. Never run it on production
 equipment. Follow [hardware connection](docs/connecting-hardware.md) for network,
 watchdog, namespace, and safety prerequisites.
 
+The read-only portion of conformance also verifies that every v1 product has one
+digest-valid v2 capability profile with matching joint count, explicit base/tool frames,
+and bounded joint, force, navigation-speed, and payload metadata.
+
 ## Development
 
 Requires Python 3.12 and `uv`:
@@ -83,4 +102,13 @@ uv run python tools/soak.py --iterations 10000
 
 The requirements and evidence-backed 100-point assessment are in
 [`docs/enterprise-requirements.md`](docs/enterprise-requirements.md) and
-[`quality/scorecard.json`](quality/scorecard.json).
+[`quality/scorecard.json`](quality/scorecard.json). Benchmark thresholds, current
+evidence, and leak interpretation are in [`docs/benchmark.md`](docs/benchmark.md).
+
+## Deliberate boundary
+
+This repository accepts device-space navigation and joint commands only. It does not
+accept images, perception or grasp results, datasets, policies, model artifacts, or
+arbitrary hardware endpoints. A future planner must validate its own provenance and
+convert an approved plan into the unchanged canonical command contract before crossing
+this boundary. Real hardware remains disabled and requires a separate conforming adapter.

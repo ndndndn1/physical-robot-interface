@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0",
+  "observed_at": "2026-09-02",
+  "runtime": "CPython 3.12",
+  "benchmark": {
+    "command": "uv run python tools/benchmark.py --iterations 2000 --min-cycles-per-second 2000",
+    "iterations": 2000,
+    "cycles_per_second": 9053.42,
+    "mean_cycle_ms": 0.1027,
+    "p95_cycle_ms": 0.1191,
+    "retained_commands": 256,
+    "profile_digest": "sha256:59d3aa0fbadad54bc730e02847d3090ee92d4ce6c299fa8a023bfee1115a52d2",
+    "status": "pass"
+  },
+  "soak": {
+    "command": "uv run python tools/soak.py --iterations 10000",
+    "iterations": 10000,
+    "retained_commands": 128,
+    "allocation_growth_bytes": 569808,
+    "peak_traced_bytes": 576008,
+    "maximum_growth_bytes": 8388608,
+    "profile_digest": "sha256:ac9b980057912f3967c9c5444912429f481ca5f5bd482f34f6ac6fbdf87cd322",
+    "status": "pass"
+  }
+}

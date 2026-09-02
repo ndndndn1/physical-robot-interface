@@ -13,11 +13,12 @@ from physical_robot.contracts import CommandRequest
 from physical_robot.runtime import MockRobotRuntime
 
 
-def run(iterations: int) -> dict[str, float | int]:
+def run(iterations: int) -> dict[str, float | int | str]:
     if iterations < 1:
         raise ValueError("iterations must be positive")
     now = datetime(2026, 1, 1, tzinfo=UTC)
     runtime = MockRobotRuntime(clock=ManualClock(now), max_commands=256)
+    profile = runtime.get_capability_profile("mock-humanoid-mh-01")
     durations_ms: list[float] = []
     started = time.perf_counter()
     for index in range(iterations):
@@ -50,6 +51,7 @@ def run(iterations: int) -> dict[str, float | int]:
         "mean_cycle_ms": round(statistics.mean(durations_ms), 4),
         "p95_cycle_ms": round(p95, 4),
         "retained_commands": runtime.command_count,
+        "profile_digest": profile.profile_digest,
     }
 
 

@@ -1,0 +1,163 @@
+{
+  "$defs": {
+    "CommandType": {
+      "enum": [
+        "navigate",
+        "manipulate",
+        "protective_stop"
+      ],
+      "title": "CommandType",
+      "type": "string"
+    },
+    "JointLimit": {
+      "additionalProperties": false,
+      "description": "A mock product's planner-visible position and velocity envelope.",
+      "properties": {
+        "joint_name": {
+          "pattern": "^[A-Za-z][A-Za-z0-9_]{0,63}$",
+          "title": "Joint Name",
+          "type": "string"
+        },
+        "max_position_rad": {
+          "maximum": 6.283186,
+          "minimum": -6.283186,
+          "title": "Max Position Rad",
+          "type": "number"
+        },
+        "max_velocity_rad_s": {
+          "exclusiveMinimum": 0,
+          "maximum": 20,
+          "title": "Max Velocity Rad S",
+          "type": "number"
+        },
+        "min_position_rad": {
+          "maximum": 6.283186,
+          "minimum": -6.283186,
+          "title": "Min Position Rad",
+          "type": "number"
+        }
+      },
+      "required": [
+        "joint_name",
+        "min_position_rad",
+        "max_position_rad",
+        "max_velocity_rad_s"
+      ],
+      "title": "JointLimit",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Strict v2 product envelope; the digest covers every preceding field.",
+  "properties": {
+    "base_frame": {
+      "pattern": "^[A-Za-z][A-Za-z0-9_/]{0,63}$",
+      "title": "Base Frame",
+      "type": "string"
+    },
+    "capabilities": {
+      "items": {
+        "$ref": "#/$defs/CommandType"
+      },
+      "minItems": 1,
+      "title": "Capabilities",
+      "type": "array"
+    },
+    "classification": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Classification",
+      "type": "string"
+    },
+    "connection_interface": {
+      "maxLength": 256,
+      "minLength": 1,
+      "title": "Connection Interface",
+      "type": "string"
+    },
+    "joint_count": {
+      "maximum": 16,
+      "minimum": 1,
+      "title": "Joint Count",
+      "type": "integer"
+    },
+    "joint_limits": {
+      "items": {
+        "$ref": "#/$defs/JointLimit"
+      },
+      "maxItems": 16,
+      "minItems": 1,
+      "title": "Joint Limits",
+      "type": "array"
+    },
+    "max_manipulation_force_n": {
+      "exclusiveMinimum": 0,
+      "maximum": 250,
+      "title": "Max Manipulation Force N",
+      "type": "number"
+    },
+    "max_navigation_speed_mps": {
+      "exclusiveMinimum": 0,
+      "maximum": 2,
+      "title": "Max Navigation Speed Mps",
+      "type": "number"
+    },
+    "max_payload_kg": {
+      "exclusiveMinimum": 0,
+      "maximum": 1000,
+      "title": "Max Payload Kg",
+      "type": "number"
+    },
+    "model_name": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Model Name",
+      "type": "string"
+    },
+    "product_id": {
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$",
+      "title": "Product Id",
+      "type": "string"
+    },
+    "product_name": {
+      "maxLength": 128,
+      "minLength": 1,
+      "title": "Product Name",
+      "type": "string"
+    },
+    "profile_digest": {
+      "pattern": "^sha256:[0-9a-f]{64}$",
+      "title": "Profile Digest",
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "2.0.0",
+      "default": "2.0.0",
+      "title": "Schema Version",
+      "type": "string"
+    },
+    "tool_frame": {
+      "pattern": "^[A-Za-z][A-Za-z0-9_/]{0,63}$",
+      "title": "Tool Frame",
+      "type": "string"
+    }
+  },
+  "required": [
+    "product_id",
+    "classification",
+    "product_name",
+    "model_name",
+    "capabilities",
+    "joint_count",
+    "connection_interface",
+    "joint_limits",
+    "max_manipulation_force_n",
+    "max_navigation_speed_mps",
+    "max_payload_kg",
+    "base_frame",
+    "tool_frame",
+    "profile_digest"
+  ],
+  "title": "ProductCapabilityProfile",
+  "type": "object"
+}
